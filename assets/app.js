@@ -4,6 +4,7 @@
   const state = { people: [], settings: {}, filter: "all", query: "", loadedData: false };
   let audioWasPlayingBeforeBirthday = false;
   let birthdaySoundGestureInstalled = false;
+  const BIRTHDAY_SOUND_GESTURES = ["pointerdown", "touchend", "click", "keydown"];
 
   /* ---------- background decoration ---------- */
   function decorate() {
@@ -68,8 +69,8 @@
   }
   function removeBirthdaySoundGesture() {
     if (!birthdaySoundGestureInstalled) return;
-    document.removeEventListener("pointerdown", enableBirthdayVideoSound, true);
-    document.removeEventListener("keydown", enableBirthdayVideoSound, true);
+    BIRTHDAY_SOUND_GESTURES.forEach((eventName) =>
+      document.removeEventListener(eventName, enableBirthdayVideoSound, true));
     birthdaySoundGestureInstalled = false;
   }
   function enableBirthdayVideoSound() {
@@ -94,8 +95,8 @@
   }
   function addBirthdaySoundGesture() {
     if (birthdaySoundGestureInstalled) return;
-    document.addEventListener("pointerdown", enableBirthdayVideoSound, true);
-    document.addEventListener("keydown", enableBirthdayVideoSound, true);
+    BIRTHDAY_SOUND_GESTURES.forEach((eventName) =>
+      document.addEventListener(eventName, enableBirthdayVideoSound, true));
     birthdaySoundGestureInstalled = true;
   }
   /* ---------- render ---------- */
