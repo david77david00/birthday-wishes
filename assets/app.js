@@ -2,7 +2,7 @@
 (function () {
   const $ = (s, el = document) => el.querySelector(s);
   const state = { people: [], settings: {}, filter: "all", query: "", loadedData: false };
-  let confettiFiredFor = "";
+  let audioWasPlayingBeforeBirthday = false;
 
   /* ---------- background decoration ---------- */
   function decorate() {
@@ -65,10 +65,6 @@
     const today = siteDateParts(date);
     return birthday.m === Number(today.month) && birthday.d === Number(today.day);
   }
-  function wishText(name) {
-    return `🎉🎂 Happy Birthday, ${name}! 🎂🎉\nWishing you a year full of joy, laughter and success! 🥳`;
-  }
-
   /* ---------- render ---------- */
   function renderStats(sorted) {
     const now = new Date();
@@ -83,58 +79,48 @@
 
   function renderSpotlight(sorted) {
     const box = $("#spotlight");
+    const wasBirthdayMode = document.body.classList.contains("birthday-mode");
     box.innerHTML = "";
     box.classList.remove("today");
-    if (!sorted.length) { box.hidden = true; return; }
-    box.hidden = false;
-
     const todays = sorted.filter((x) => isBirthdayToday(x.person));
+    document.body.classList.toggle("birthday-mode", todays.length > 0);
+
     if (todays.length) {
-      box.classList.add("today");
-      const names = el("div", { class: "today-names" });
-      todays.forEach(({ person, info }) => {
-        names.appendChild(el("div", { class: "spot-name", text: person.name }));
-        if (info.turning > 0) names.appendChild(el("div", { class: "spot-meta", text: `turns ${info.turning} today 🎈` }));
-        if (person.note) names.appendChild(el("div", { class: "spot-note", text: `“${person.note}”` }));
+      if (!wasBirthdayMode) audioWasPlayingBeforeBirthday = !musicEl().paused;
+      musicEl().pause();
+      box.hidden = false;
+      const wishes = el("div", { class: "birthday-wishes" });
+      todays.forEach(({ person }) => {
+        const wish = person.note || `Wishing you a wonderful birthday, ${person.name}! May your year be full of joy, laughter and success.`;
+        wishes.appendChild(el("article", { class: "birthday-person" }, [
+          el("h1", { class: "birthday-name", text: `Happy Birthday, ${person.name}!` }),
+          el("p", { class: "birthday-wish", text: wish })
+        ]));
       });
-      const first = todays[0].person.name;
-      const allNames = todays.map((t) => t.person.name).join(" & ");
-      const wa = el("a", {
-        class: "btn", target: "_blank", rel: "noopener",
-        href: "https://wa.me/?text=" + encodeURIComponent(wishText(allNames))
-      });
-      wa.textContent = "💬 Send wishes on WhatsApp";
-      const party = el("button", { class: "btn ghost", type: "button" });
-      party.textContent = "🎊 Celebrate!";
-      party.addEventListener("click", () => burst(260));
       const video = el("video", {
-        class: "birthday-video", autoplay: "", muted: "", loop: "", playsinline: "",
-        preload: "auto", "aria-label": `Birthday celebration video for ${allNames}`
+        class: "birthday-video birthday-video-only", autoplay: "", muted: "", loop: "", playsinline: "",
+        preload: "auto", "aria-label": "Birthday wishes video"
       });
+      video.muted = true;
+      video.volume = 0;
       video.src = "assets/birthday-video.mp4";
       video.addEventListener("canplay", () => video.play().catch(() => {}), { once: true });
-      const sound = el("button", { class: "btn ghost video-sound", type: "button" });
-      sound.textContent = "🔊 Turn video sound on";
-      sound.addEventListener("click", () => {
-        video.muted = !video.muted;
-        sound.textContent = video.muted ? "🔊 Turn video sound on" : "🔇 Mute video";
-        if (video.paused) video.play().catch(() => {});
-      });
-      box.append(
-        el("div", { class: "today-cake", text: "🎂" }),
-        el("div", { class: "spot-label", text: "Today is a special day" }),
-        names, video, sound, wa, party
-      );
-      const key = JSON.stringify(siteDateParts()) + first;
-      if (confettiFiredFor !== key) { confettiFiredFor = key; setTimeout(() => burst(260), 400); }
+      box.append(wishes, video);
       return;
     }
+
+    if (wasBirthdayMode && audioWasPlayingBeforeBirthday && musicStarted) {
+      playRequested = true;
+      GESTURES.forEach((ev) => document.addEventListener(ev, playMusic, { capture: true, passive: true }));
+    }
+    if (wasBirthdayMode) audioWasPlayingBeforeBirthday = false;
+    if (!sorted.length) { box.hidden = true; return; }
+    box.hidden = false;
 
     const { person, info } = sorted[0];
     const meta = `${info.label}${info.turning > 0 ? ` · turns ${info.turning}` : ""}`;
     const units = ["Days", "Hours", "Minutes", "Seconds"].map((l, i) =>
       el("div", { class: "unit" }, [el("span", { class: "num", "data-big": "dhms"[i], text: "00" }), el("span", { class: "lbl", text: l })]));
-    // filter(Boolean) drops the optional note: append() would print a null child as the text "null".
     box.append(...[
       el("div", { class: "spot-label", text: "⏳ Next birthday" }),
       el("div", { class: "spot-name", text: person.name }),
@@ -229,6 +215,7 @@
     if (s.title) { $("#title").textContent = s.title; document.title = "🎉 " + s.title; }
     $("#subtitle").textContent = s.subtitle || "";
     const a = musicEl();
+    if (state.people.some((person) => isBirthdayToday(person))) a.pause();
     if (!s.music) {
       // Music turned off in the admin panel: stop it and drop the fallback src.
       a.pause();
@@ -271,6 +258,7 @@
 
   function playMusic() {
     const a = musicEl();
+    if (state.people.some((person) => isBirthdayToday(person))) { a.pause(); return; }
     if (!a.src) return;                               // no song at all
     if (musicStarted && !playRequested) return;       // paused on purpose: leave it alone
     if (!a.paused) return;                            // already playing
