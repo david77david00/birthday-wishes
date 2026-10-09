@@ -3,6 +3,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const state = { people: [], settings: {}, filter: "all", query: "", loadedData: false };
   let audioWasPlayingBeforeBirthday = false;
+  let birthdaySoundGestureInstalled = false;
 
   /* ---------- background decoration ---------- */
   function decorate() {
@@ -65,6 +66,38 @@
     const today = siteDateParts(date);
     return birthday.m === Number(today.month) && birthday.d === Number(today.day);
   }
+  function removeBirthdaySoundGesture() {
+    if (!birthdaySoundGestureInstalled) return;
+    document.removeEventListener("pointerdown", enableBirthdayVideoSound, true);
+    document.removeEventListener("keydown", enableBirthdayVideoSound, true);
+    birthdaySoundGestureInstalled = false;
+  }
+  function enableBirthdayVideoSound() {
+    const video = $(".birthday-video-only");
+    if (!video || !document.body.classList.contains("birthday-mode")) {
+      removeBirthdaySoundGesture();
+      return;
+    }
+    // Unmute the already-playing element; do not reload or seek, so sound stays
+    // synchronized with the current video frame.
+    video.muted = false;
+    video.volume = 1;
+    const playing = video.play();
+    if (playing && typeof playing.then === "function") {
+      playing.then(removeBirthdaySoundGesture).catch(() => {
+        video.muted = true;
+        video.volume = 0;
+      });
+    } else {
+      removeBirthdaySoundGesture();
+    }
+  }
+  function addBirthdaySoundGesture() {
+    if (birthdaySoundGestureInstalled) return;
+    document.addEventListener("pointerdown", enableBirthdayVideoSound, true);
+    document.addEventListener("keydown", enableBirthdayVideoSound, true);
+    birthdaySoundGestureInstalled = true;
+  }
   /* ---------- render ---------- */
   function renderStats(sorted) {
     const now = new Date();
@@ -106,9 +139,11 @@
       video.src = "assets/birthday-video.mp4";
       video.addEventListener("canplay", () => video.play().catch(() => {}), { once: true });
       box.append(wishes, video);
+      addBirthdaySoundGesture();
       return;
     }
 
+    removeBirthdaySoundGesture();
     if (wasBirthdayMode && audioWasPlayingBeforeBirthday && musicStarted) {
       playRequested = true;
       GESTURES.forEach((ev) => document.addEventListener(ev, playMusic, { capture: true, passive: true }));

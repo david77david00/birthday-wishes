@@ -8,7 +8,7 @@ A birthday countdown site for friends and family. It runs on GitHub Pages and ha
 ## Features
 
 - Live countdowns (days / hours / minutes / seconds), sorted by the next birthday
-- A "Next birthday" spotlight with a big countdown. On the birthday, the page switches to a birthday-only view with the person’s name, saved wish and looping video; background music and video audio stay off for the day
+- A "Next birthday" spotlight with a big countdown. On the birthday, the page switches to a birthday-only view with the person’s name, saved wish and looping video. The video autoplays silently; the first tap anywhere turns on its audio in sync, while background music stays off for the day
 - Search, plus filters for *This month* and *Next 30 days*
 - Shows the age each person is turning, a progress bar, and an optional note per person
 - Floating balloons, twinkling stars and glass cards. Works on mobile, with lighter effects on touch devices for smoother scrolling
