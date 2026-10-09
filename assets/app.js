@@ -1,7 +1,7 @@
 /* Public birthday countdown page. Data lives in /data.json (edited via admin.html). */
 (function () {
   const $ = (s, el = document) => el.querySelector(s);
-  const state = { people: [], settings: {}, filter: "all", query: "" };
+  const state = { people: [], settings: {}, filter: "all", query: "", loadedData: false };
   let confettiFiredFor = "";
 
   /* ---------- background decoration ---------- */
@@ -314,8 +314,13 @@
       const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
       if (!res.ok) throw new Error(res.status);
       const data = await res.json();
-      state.people = Array.isArray(data.people) ? data.people.filter((p) => p && p.name && p.date) : [];
-      state.settings = data.settings || {};
+      const people = Array.isArray(data.people) ? data.people.filter((p) => p && p.name && p.date) : [];
+      const settings = data.settings || {};
+      if (state.loadedData && JSON.stringify(people) === JSON.stringify(state.people) &&
+          JSON.stringify(settings) === JSON.stringify(state.settings)) return;
+      state.people = people;
+      state.settings = settings;
+      state.loadedData = true;
       applySettings(state.settings);
       render();
       // Do not call play() here. Apart from being blocked by browsers, an early
