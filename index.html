@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎉 Birthday Countdown</title>
+  <meta name="description" content="Live birthday countdowns for our favourite people." />
+  <meta property="og:title" content="🎉 Birthday Countdown" />
+  <meta property="og:description" content="Live birthday countdowns for our favourite people." />
+  <meta name="theme-color" content="#140a2b" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Load the decorative fonts after first paint so a slow font request cannot block the page. -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Pacifico&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Pacifico&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet" /></noscript>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div id="stars"></div>
+    <div id="balloons"></div>
+  </div>
+  <canvas id="confetti"></canvas>
+
+  <main>
+    <header class="hero-head">
+      <span class="badge">🎂 Birthday Calendar</span>
+      <h1 id="title" title="Click me!">Happy Birthday</h1>
+      <p id="subtitle" class="subtitle"></p>
+    </header>
+
+    <!-- Spotlight: today's birthday or the next one -->
+    <section id="spotlight" class="spotlight glass" hidden></section>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="toolbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search" type="search" placeholder="Search a name…" autocomplete="off" />
+      </div>
+      <div class="chips" id="filters">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="month">This month</button>
+        <button class="chip" data-filter="30">Next 30 days</button>
+      </div>
+    </section>
+
+    <section id="grid" class="grid"></section>
+    <p id="empty" class="empty" hidden>No birthdays match your search 🙈</p>
+    <div id="loading" class="loading"><span></span><span></span><span></span></div>
+
+    <footer>
+      <p>Made with <span class="heart">❤</span> for friends &amp; family</p>
+      <a class="admin-link" href="admin.html">🔐 Admin</a>
+    </footer>
+  </main>
+
+  <!--
+    Music is deliberately not downloaded while the page is loading. Browsers
+    only permit playback after a gesture, so assets/app.js starts it on the
+    first tap, click or key press and falls back if the URL fails.
+  -->
+  <audio id="lagu" src="assets/music/DEVIL.mp3" loop preload="none"></audio>
+
+  <script src="assets/common.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin · Birthday Countdown</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#140a2b" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Load the decorative fonts after first paint so a slow font request cannot block the panel. -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Pacifico&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Pacifico&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet" /></noscript>
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/admin.css" />
+</head>
+<body>
+  <div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+  <!-- ============ LOGIN ============ -->
+  <section id="login" class="login-wrap">
+    <form id="loginForm" class="login glass" autocomplete="off">
+      <div class="lock">🔐</div>
+      <h1 class="admin-title">Admin Panel</h1>
+      <p class="muted center">Paste your GitHub token and the repository will load automatically.</p>
+
+      <label>GitHub token
+        <input id="token" type="password" required placeholder="ghp_… or github_pat_…" autocomplete="new-password" spellcheck="false" />
+      </label>
+
+      <label class="check"><input id="remember" type="checkbox" checked /> Remember me on this device</label>
+
+      <button class="btn full" type="submit" id="loginBtn">Connect to GitHub</button>
+      <p id="loginErr" class="err" hidden></p>
+
+      <details class="help">
+        <summary>How do I get a token? (1 minute)</summary>
+        <ol>
+          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → Fine-grained tokens → Generate new token</a>.</li>
+          <li>Name it e.g. <em>birthday-admin</em> and pick an expiration.</li>
+          <li><b>Repository access</b> → <em>Only select repositories</em> → choose <b id="repoHint">this repo</b>.</li>
+          <li><b>Permissions → Repository permissions → Contents</b> → <em>Read and write</em>.</li>
+          <li>Click <b>Generate token</b>, copy it and paste it above.</li>
+        </ol>
+        <p class="muted small"><code>ghp_…</code> classic tokens also work when they have the <code>repo</code> scope. Your token is only stored in this browser and is only ever sent to <code>api.github.com</code>.</p>
+      </details>
+      <a class="back" href="./">← Back to site</a>
+    </form>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="app" class="app" hidden>
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="logo">🎂</span>
+        <div>
+          <b>Birthday Admin</b>
+          <a id="repoLink" class="muted small" target="_blank" rel="noopener"></a>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span id="dirty" class="pill" hidden>● Unsaved changes</span>
+        <button id="discardBtn" class="btn ghost sm" hidden>Discard</button>
+        <button id="saveBtn" class="btn sm" disabled>☁️ Save to GitHub</button>
+        <a class="btn ghost sm" href="./" target="_blank" rel="noopener">View site ↗</a>
+        <button id="logoutBtn" class="btn ghost sm" title="Log out">⎋</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="people">👥 People <span id="countBadge" class="count-badge">0</span></button>
+      <button class="tab" data-tab="settings">⚙️ Site settings</button>
+      <button class="tab" data-tab="tools">📦 Import / Export</button>
+    </nav>
+
+    <!-- People -->
+    <div class="panel" data-panel="people">
+      <div class="toolbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="q" type="search" placeholder="Search…" autocomplete="off" />
+        </div>
+        <select id="sort" class="select">
+          <option value="next">Sort: Next birthday</option>
+          <option value="name">Sort: Name A–Z</option>
+          <option value="date">Sort: Calendar (Jan → Dec)</option>
+        </select>
+        <button id="addBtn" class="btn">＋ Add person</button>
+      </div>
+      <div id="list" class="list"></div>
+      <p id="listEmpty" class="empty" hidden>No people yet. Click “Add person” to get started 🎈</p>
+    </div>
+
+    <!-- Settings -->
+    <div class="panel glass pad" data-panel="settings" hidden>
+      <form id="settingsForm" class="form">
+        <label>Site title <input name="title" maxlength="60" placeholder="Happy Birthday" /></label>
+        <label>Subtitle <input name="subtitle" maxlength="160" placeholder="A short line under the title" /></label>
+        <label>Background music URL <span class="muted small">(optional — e.g. <code>music.mp3</code> uploaded to the repo)</span>
+          <input name="music" placeholder="music.mp3 or https://…" />
+        </label>
+        <label>Timezone for Telegram reminders
+          <input name="timezone" placeholder="Asia/Kolkata" />
+        </label>
+        <p class="muted small">Settings changes are staged like everything else — press <b>Save to GitHub</b> to publish.</p>
+      </form>
+    </div>
+
+    <!-- Tools -->
+    <div class="panel" data-panel="tools" hidden>
+      <div class="tools">
+        <div class="glass pad">
+          <h3>📥 Bulk import</h3>
+          <p class="muted small">Paste either JSON (<code>[{"name":"…","date":"YYYY-MM-DD"}]</code>) or the old text format:</p>
+          <pre class="sample">Subir Gharami
+27 10 2001
+Priti Ghosh
+15 12 2001</pre>
+          <textarea id="importText" rows="8" placeholder="Paste here…"></textarea>
+          <div class="btn-row">
+            <button id="importMerge" class="btn sm">Add to list</button>
+            <button id="importReplace" class="btn ghost sm">Replace whole list</button>
+          </div>
+        </div>
+        <div class="glass pad">
+          <h3>📤 Export / backup</h3>
+          <p class="muted small">Download all data as a file. Every save is also a Git commit, so you can always restore an older version from the repo history.</p>
+          <div class="btn-row">
+            <button id="exportJson" class="btn sm">Download data.json</button>
+            <button id="exportTxt" class="btn ghost sm">Download as text</button>
+          </div>
+          <a id="historyLink" class="muted small" target="_blank" rel="noopener">View change history on GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODALS ============ -->
+  <dialog id="editDlg" class="dlg">
+    <form id="editForm" method="dialog" class="form">
+      <h3 id="editTitle">Add person</h3>
+      <label>Name <input name="name" required maxlength="80" placeholder="Full name" /></label>
+      <label>Date of birth <input name="date" type="date" required /></label>
+      <label>Note / wish <span class="muted small">(optional, shown on the card)</span>
+        <input name="note" maxlength="140" placeholder="e.g. Best friend since school 💛" />
+      </label>
+      <div class="btn-row end">
+        <button type="button" class="btn ghost sm" data-close>Cancel</button>
+        <button type="submit" class="btn sm" value="ok">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirmDlg" class="dlg">
+    <form method="dialog" class="form">
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p id="confirmMsg" class="muted"></p>
+      <div class="btn-row end">
+        <button value="cancel" class="btn ghost sm">Cancel</button>
+        <button value="ok" class="btn danger sm" id="confirmOk">Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts"></div>
+
+  <script src="assets/common.js"></script>
+  <script src="assets/admin.js"></script>
+</body>
+</html>

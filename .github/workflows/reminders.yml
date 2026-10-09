@@ -1,0 +1,25 @@
+# Daily Telegram birthday reminders.
+# Add repo secrets TELEGRAM_TOKEN and TELEGRAM_CHAT_ID (Settings → Secrets and variables → Actions).
+name: Birthday reminders
+
+on:
+  schedule:
+    - cron: "30 2 * * *"   # every day at 02:30 UTC = 08:00 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Send reminders
+        run: node scripts/remind.mjs
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
